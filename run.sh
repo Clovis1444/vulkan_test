@@ -9,7 +9,7 @@ SCRIPT_DIR="$(dirname "$(realpath "$0")")"
 cd "$SCRIPT_DIR" || exit 1
 
 BUILD_DIR="./build/"
-TARGET="init"
+TARGET="vulkan_test"
 RUN_TARGET=${BUILD_DIR}${TARGET}
 
 SET_TARGET=""
