@@ -8,6 +8,8 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -Wpedantic -Weffc++ -Wno-s
 find_package(glfw3 REQUIRED)
 find_package(Vulkan REQUIRED)
 
-add_executable(${PROJECT_NAME} src/main.cpp)
+add_executable(${PROJECT_NAME}
+${CMAKE_CURRENT_SOURCE_DIR}/src/main.cpp
+)
 
 target_link_libraries(${PROJECT_NAME} glfw ${GLFW_LIBRARIES} Vulkan::Vulkan)
