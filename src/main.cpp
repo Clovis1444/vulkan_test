@@ -73,6 +73,7 @@ class HelloTriangleApplication {
         createInstance();
         setupDebugMessenger();
         pickPhysicalDevice();
+        createLogicalDevice();
     }
     void mainLoop() {
         while (!glfwWindowShouldClose(window_)) {
@@ -80,6 +81,8 @@ class HelloTriangleApplication {
         }
     }
     void cleanup() {
+        vkDestroyDevice(device_, nullptr);
+
         if (enableValidationLayers) {
             DestroyDebugUtilsMessengerEXT(instance_, debugMessenger_, nullptr);
         }
@@ -321,6 +324,44 @@ class HelloTriangleApplication {
         return indices;
     }
 
+    void createLogicalDevice() {
+        QueueFamilyIndices indices{findQueueFamilyIndices(physicalDevice_)};
+
+        VkDeviceQueueCreateInfo queue_create_info{};
+        queue_create_info.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
+        queue_create_info.queueFamilyIndex = indices.graphicsFamily.value();
+        queue_create_info.queueCount = 1;
+
+        float queue_priority{1.0};
+        queue_create_info.pQueuePriorities = &queue_priority;
+
+        VkPhysicalDeviceFeatures device_features{};
+
+        VkDeviceCreateInfo create_info{};
+        create_info.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
+        create_info.pQueueCreateInfos = &queue_create_info;
+        create_info.queueCreateInfoCount = 1;
+        create_info.pEnabledFeatures = &device_features;
+
+        create_info.enabledExtensionCount = 0;
+
+        if (enableValidationLayers) {
+            create_info.enabledLayerCount =
+                static_cast<uint32_t>(validationLayers.size());
+            create_info.ppEnabledLayerNames = validationLayers.data();
+        } else {
+            create_info.enabledLayerCount = 0;
+        }
+
+        if (vkCreateDevice(physicalDevice_, &create_info, nullptr, &device_) !=
+            VK_SUCCESS) {
+            throw std::runtime_error{"Failed to create logical device!"};
+        }
+
+        vkGetDeviceQueue(device_, indices.graphicsFamily.value(), 0,
+                         &graphicsQueue_);
+    }
+
     const int32_t kWidth_{800};
     const int32_t kHeight_{600};
     GLFWwindow* window_{nullptr};
@@ -328,6 +369,8 @@ class HelloTriangleApplication {
     VkInstance instance_;
     VkDebugUtilsMessengerEXT debugMessenger_;
     VkPhysicalDevice physicalDevice_{VK_NULL_HANDLE};
+    VkDevice device_;
+    VkQueue graphicsQueue_;
 };
 
 int main() {
