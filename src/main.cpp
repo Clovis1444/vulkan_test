@@ -80,6 +80,7 @@ class HelloTriangleApplication {
         pickPhysicalDevice();
         createLogicalDevice();
         createSwapChain();
+        createImageViews();
     }
     void mainLoop() {
         while (!glfwWindowShouldClose(window_)) {
@@ -87,6 +88,10 @@ class HelloTriangleApplication {
         }
     }
     void cleanup() {
+        for (auto* image_view : swapChainImageViews_) {
+            vkDestroyImageView(device_, image_view, nullptr);
+        }
+
         vkDestroySwapchainKHR(device_, swapChain_, nullptr);
         vkDestroyDevice(device_, nullptr);
 
@@ -585,6 +590,35 @@ class HelloTriangleApplication {
         swapChainExtent_ = extent;
     }
 
+    void createImageViews() {
+        swapChainImageViews_.resize(swapChainImages_.size());
+
+        for (size_t i{}; i < swapChainImages_.size(); ++i) {
+            VkImageViewCreateInfo create_info{};
+            create_info.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
+            create_info.image = swapChainImages_[i];
+            create_info.viewType = VK_IMAGE_VIEW_TYPE_2D;
+            create_info.format = swapChainImageFormat_;
+
+            create_info.components.r = VK_COMPONENT_SWIZZLE_IDENTITY;
+            create_info.components.g = VK_COMPONENT_SWIZZLE_IDENTITY;
+            create_info.components.b = VK_COMPONENT_SWIZZLE_IDENTITY;
+            create_info.components.a = VK_COMPONENT_SWIZZLE_IDENTITY;
+
+            create_info.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+            create_info.subresourceRange.baseMipLevel = 0;
+            create_info.subresourceRange.levelCount = 1;
+            create_info.subresourceRange.baseArrayLayer = 0;
+            create_info.subresourceRange.layerCount = 1;
+
+            if (vkCreateImageView(device_, &create_info, nullptr,
+                                  &swapChainImageViews_[i]) != VK_SUCCESS) {
+                throw std::runtime_error{
+                    "Failed to create swap chain image views!"};
+            }
+        }
+    }
+
     const int32_t kWidth_{800};
     const int32_t kHeight_{600};
     GLFWwindow* window_{nullptr};
@@ -606,6 +640,8 @@ class HelloTriangleApplication {
     std::vector<VkImage> swapChainImages_;
     VkFormat swapChainImageFormat_;
     VkExtent2D swapChainExtent_;
+
+    std::vector<VkImageView> swapChainImageViews_;
 };
 
 int main() {
