@@ -25,3 +25,5 @@ done
 
 cmake -S . -B ${BUILD_DIR} ${C_C} ${CXX_C} ${BUILD_GEN} || exit 1
 cmake --build ${BUILD_DIR} ${TARGET} || exit 1
+
+shaders/compile.sh || exit 1
